@@ -174,20 +174,7 @@
 
 
 
-;internal function for getSurroundingMines
-(define (GSMI x y)
-  (cond
-    [(and (x >= 0) (y >= 0) (y < height) (x < width))
-     
-     (cond
-       [(mine? x y)
-        1]
-       )
-     ]
-    
-    [#t 0]
-    )
-  )
+
 
 
 ;returns number of mines surrounding a tile, the max and min functions are to avoid going out of bounds of the array
