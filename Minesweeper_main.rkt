@@ -147,6 +147,10 @@
 
 
 ;getters and setters for diff attributes of tiles, rememer y scales downwards as far as the computer is concerned
+(define (setSurroundingMines x y num)
+  (vector-set! (vector-ref (vector-ref board y) x) 3 num)
+  )
+
 (define (mine? x y)
   (vector-ref (vector-ref (vector-ref board y) x) 2)
   )
@@ -166,12 +170,6 @@
 (define (clear x y)
   (vector-set! (vector-ref (vector-ref board y) x) 0 #t)
   )
-
-(define (setSurroundingMines x y num)
-  (vector-set! (vector-ref (vector-ref board y) x) 3 num)
-  )
-
-
 
 
 
@@ -244,7 +242,7 @@
   (for ([i (in-range height)])
     (printf "\n")
     (for ([j (in-range width)])
-      (printf "~a | " (vector-ref (vector-ref board j) i))
+      (printf "~a | " (vector-ref (vector-ref board i) j))
       )
     (printf "\n________________________________________________________________________________\n")
   
