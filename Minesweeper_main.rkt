@@ -8,6 +8,8 @@
 
 
 
+
+
 ;following section commented out because of weirdness in the make-vector function not allowing you to cahnge one index of a 3d vector
 ;manually defining the board instead, figure this out and change it later in order to make the baord size dynamic
 ;also changed the innermost section to be a vector instead of a list because why was it a list?
@@ -117,28 +119,8 @@
 
 
 
-#|not in use anymore, delete later
-
-(define (populateMines)
-  (for ([i (in-range num-mines )])
-    (define x (random width))
-    (define y (random height))
-    (cond ;if theres already a mine on the randomly selected square then decrement i
-      [(not (vector-ref (vector-ref (vector-ref board y) x) 2))
-      (vector-set! (vector-ref (vector-ref board y) x) 2 #t)
-      (printf "i is ~a \n" i)
-      ]
-      [#t
-       (set! i (- i 1))
-       ]
-      )
-    )
-  )
-|#
-
-
 ;randomly fills the board with however many mines are needed, call it passing a 0 as counter
-(define (populateMines counter) 
+(define (populateMinesInternal counter) 
   (cond
     [(< counter num-mines)
      (define x (random width))
@@ -147,19 +129,24 @@
      (cond
        [(not (vector-ref (vector-ref (vector-ref board y) x) 2))
         (vector-set! (vector-ref (vector-ref board y) x) 2 #t)
-        (populateMines (+ counter 1))
+        (populateMinesInternal (+ counter 1))
         ]
        
        [#t
-        (populateMines counter)
+        (populateMinesInternal counter)
         ]
-       
        )
      ]
     )
   )
 
-;getters for diff attributes of tiles, rememer y scales downwards as far as the computer is concerned
+;just exists because i find it annoying during testign to have to keep calling it with a 0
+(define (populateMines)
+  (populateMinesInternal 0)
+  )
+
+
+;getters and setters for diff attributes of tiles, rememer y scales downwards as far as the computer is concerned
 (define (mine? x y)
   (vector-ref (vector-ref (vector-ref board y) x) 2)
   )
@@ -168,10 +155,21 @@
   (vector-ref (vector-ref (vector-ref board y) x ) 1)
   )
 
+(define (flag x y)
+  (vector-set! (vector-ref (vector-ref board y) x) 1 #t)
+  )
+
 (define (cleared? x y)
   (vector-ref (vector-ref (vector-ref board y) x) 0)
   )
 
+(define (clear x y)
+  (vector-set! (vector-ref (vector-ref board y) x) 0 #t)
+  )
+
+(define (setSurroundingMines x y num)
+  (vector-set! (vector-ref (vector-ref board y) x) 3 num)
+  )
 
 
 
@@ -182,35 +180,77 @@
 (define (getSurroundingMines x y)
   (define numMines 0)
   (for ([i (in-range (max 0 (- x 1)) (min height (+ x 2)))])
-        (for ([ j (in-range (max 0 (- y 1)) (min height (+ y 2)))])
-          (cond
-            [(mine? i j)
-             (set! numMines (+ numMines 1))
-             ]
-            )
-          )
+    (for ([ j (in-range (max 0 (- y 1)) (min height (+ y 2)))])
+      (cond
+        [(mine? i j)
+         (set! numMines (+ numMines 1))
+         ]
+        )
+      )
     )
   numMines
   )
           
-             
-       
-     
-    
-  
 
 
-;recursively clears tiles on the board following these rules - currently WIP
+;recursively clears tiles on the board following these rules
 ; - if tile is a mine, game ends
 ; - if tile is not a mine, show number of surrounding mines
 ; - if there are no surrounding mines, clear all surrounding tiles ignoring whether they are flagged or not
 (define (clearTile x y)
+  (define numMines 0)
   (cond
     [(mine? x y)
      (gameOver)
      ]
+    
+    [#t
+     
+     (set! numMines (getSurroundingMines x y))
+     (clear x y)
+     (cond
+       [(equal? numMines 0)
+        (clearSurroundingTiles x y)
+        ]
+
+       [#t
+        (setSurroundingMines x y numMines)
+        ]
+       )
+     ]
     )
   )
+  
+      
+
+;support function to keep things cleaner - calls clearTile on all tiles surrounding a given one
+;means that clearTiles is essentially a recursive function, i just didnt want to cram it all into one for debugging and reabability pourposes
+(define (clearSurroundingTiles x y)
+  (for ([i (in-range (max 0 (- x 1)) (min height (+ x 2)))])
+    (for ([ j (in-range (max 0 (- y 1)) (min height (+ y 2)))])
+      (cond
+        [(not (cleared? i j))
+         (clearTile i j)
+         ]
+        )
+      )
+    )
+  )
+
+
+;prints out the state of the board into console, because the regular vector view is kinda hard to look at
+(define (showBoard)
+  (printf "________________________________________________________________________________ ")
+  (for ([i (in-range height)])
+    (printf "\n")
+    (for ([j (in-range width)])
+      (printf "~a | " (vector-ref (vector-ref board j) i))
+      )
+    (printf "\n________________________________________________________________________________\n")
+  
+    )
+  )
+    
   
 
     
