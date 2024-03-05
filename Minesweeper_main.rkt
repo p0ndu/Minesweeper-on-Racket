@@ -31,6 +31,7 @@
   )
 
 
+
 ;; Create the main frame for the game
 (define frame (new frame% [label "Minesweeper"] [width 200] [height 200]))
 
